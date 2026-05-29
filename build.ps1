@@ -6,7 +6,7 @@ $APP_NAME     = "SmartLibrary"
 $APP_VERSION  = "1.0.0"
 $APP_VENDOR   = "SmartLibrary"
 $APP_DESC     = "Smart Library Management System"
-$MAIN_CLASS   = "library.main.Main"
+$MAIN_CLASS   = "library.main.LibraryApp"
 $JAR_NAME     = "SmartLibrary.jar"
 $SRC_DIR      = "src\main\java"
 $DATA_DIR     = "data"
@@ -106,26 +106,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "         JAR: $JAR_DIR\$JAR_NAME"
 
-# Bundle EMPTY template CSVs so the app starts fresh for every new user.
-# The app creates files on first run if they don't exist, but seeding
-# with headers-only CSVs ensures the correct columns are always present.
-$TEMPLATES_DIR = "$DATA_DIR\templates"
-$SEED_DIR      = "$JAR_DIR\data"
-New-Item -ItemType Directory -Path $SEED_DIR -Force | Out-Null
-
-if (Test-Path $TEMPLATES_DIR) {
-    Copy-Item -Path "$TEMPLATES_DIR\*" -Destination $SEED_DIR -Recurse -Force
-    Write-Host "         Seeded data\ with empty template CSVs (fresh start for users)"
-} else {
-    # No templates found - write minimal header-only CSVs inline
-    Write-Warn "data\templates\ not found - generating minimal seed files..."
-    "bookId,title,author,genre,quantity,available"          | Out-File "$SEED_DIR\books.csv"         -Encoding UTF8
-    "userId,name,email"                                      | Out-File "$SEED_DIR\users.csv"          -Encoding UTF8
-    "transactionId,bookId,bookName,userId,userName,issueDate,returnDate,status" | Out-File "$SEED_DIR\transactions.csv" -Encoding UTF8
-    "itemType,itemId,itemName,removedAt"                     | Out-File "$SEED_DIR\removed_items.csv" -Encoding UTF8
-    "username,fullName,email,phone,role,passwordHash"        | Out-File "$SEED_DIR\users_auth.csv"    -Encoding UTF8
-    Write-OK "Minimal seed files created."
-}
+# The application now handles its own data initialization in %APPDATA%.
+# No need to bundle a local data folder anymore.
 Write-OK "JAR ready."
 
 # ?? STEP 6: Package with jpackage ????????????????????????
@@ -134,23 +116,22 @@ Write-Host "             This may take 1-3 minutes. Please wait..."
 Write-Host ""
 
 $iconOpt = @()
-if (Test-Path "$RESOURCES_DIR\app.ico") {
-    $iconOpt = @("--icon", "$RESOURCES_DIR\app.ico")
-    Write-Host "         Custom icon: $RESOURCES_DIR\app.ico"
+if (Test-Path "$RESOURCES_DIR\lib.ico") {
+    $iconOpt = @("--icon", "$RESOURCES_DIR\lib.ico")
+    Write-Host "         Custom icon: $RESOURCES_DIR\lib.ico"
 } else {
-    Write-Host "         Icon: default (add resources\app.ico for a custom icon)"
+    Write-Host "         Icon: default (add resources\lib.ico for a custom icon)"
 }
 
 $commonArgs = @(
     "--name",        $APP_NAME,
     "--app-version", $APP_VERSION,
-    "--vendor",      $APP_VENDOR,
+    "--vendor",      "Alemu Chamada",
     "--description", $APP_DESC,
     "--input",       $JAR_DIR,
     "--main-jar",    $JAR_NAME,
     "--main-class",  $MAIN_CLASS,
     "--dest",        $INSTALLER_DIR,
-    "--java-options", "-Dapp.dataDir=`$APPDIR/data",
     "--java-options", "-Dawt.useSystemAAFontSettings=on",
     "--java-options", "-Dswing.aatext=true",
     "--java-options", "-Dsun.java2d.uiScale.enabled=true",

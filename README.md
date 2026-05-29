@@ -27,6 +27,20 @@ It provides seamless workflows for Librarians to manage inventory, track book is
 * **🖥️ Modern Interface**: Hardware-accelerated UI rendering, anti-aliased fonts (`awt.useSystemAAFontSettings=on`), and responsive layouts.
 * **🚀 Standalone Windows EXE**: Ships as a fully contained Windows Installer. Users **do not need Java installed** on their computer to run the app!
 
+## 🖼️ User Interface
+
+### Login Screen (Light Mode)
+<img src="photos/login_light_mode.jpg" alt="Login Light Mode" width="600">
+
+### Login Screen (Dark Mode)
+<img src="photos/login_dark_mode.jpg" alt="Login Dark Mode" width="600">
+
+### User Profiles (Light Mode)
+<img src="photos/user_profiles_light_mode.jpg" alt="User Profiles Light Mode" width="600">
+
+### User Profiles (Dark Mode)
+<img src="photos/user_profiles_dark_mode.jpg" alt="User Profiles Dark Mode" width="600">
+
 ## 🏗️ Architecture & Stack
 
 * **Language**: Java 17+
@@ -38,18 +52,20 @@ It provides seamless workflows for Librarians to manage inventory, track book is
 SmartLibrary/
 ├── src/main/java/          # Source Code (Models, Views, Controllers, Storage)
 ├── src/main/resources/     # Application Assets and Icons
-├── data/templates/         # Zero-state database schemas (Headers only)
+├── dist/                   # Pre-built executables for end users
+├── data/                   # Runtime data storage (auto-generated)
+├── photos/                 # UI screenshots and documentation images
 ├── build.bat               # Windows Build Trigger
-└── build.ps1               # Core PowerShell Automation Script
+├── build.ps1               # Core PowerShell Automation Script
+└── run-dev.bat             # Development quick-run script
 ```
 
 ## 🚀 Installation & Usage
 
 ### Method 1: The Easy Way (End Users)
-1. Go to the [Releases](../../releases) page.
-2. Download the `SmartLibrary-1.0.0.exe` installer.
-3. Double click the installer to add the application to your Start Menu.
-4. **No Java installation required!** The application ships with an embedded Java runtime environment.
+1. Download the `SmartLibrary-1.0.0.exe` from the `dist/` folder.
+2. Double click the executable to run the application.
+3. **No Java installation required!** The application ships with an embedded Java runtime environment.
 
 ### Method 2: For Developers (Compile from Source)
 
@@ -72,7 +88,7 @@ The final installer will be available at `build\installer\SmartLibrary-1.0.0.exe
 
 ## 🔒 Security & Privacy
 
-SmartLibrary operates completely offline. All data is written locally to the `%APPDIR%/data` folder. The executable shipped in the repository strictly utilizes empty database templates (`data/templates/`) to guarantee a fresh, secure environment for all new installations. No real user data or passwords are included.
+SmartLibrary operates completely offline. All data is written locally to a persistent system folder (e.g., `%APPDATA%/SmartLibrary`). The application self-initializes its database and creates a default administrator account (`admin`/`admin`) upon first launch, ensuring it is fully functional as a standalone executable without requiring external setup.
 
 ## 📄 License
 

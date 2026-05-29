@@ -22,13 +22,28 @@ public class FileManager implements Storage {
 
     // In development: resolves to relative "data/" folder next to the project root.
     // When packaged with jpackage: resolves to $APPDIR/data (set via -Dapp.dataDir=$APPDIR/data).
-    private static final String DATA_DIR =
-            System.getProperty("app.dataDir", "data");
-    private static final String BOOKS_FILE = DATA_DIR + "/books.csv";
-    private static final String USERS_FILE = DATA_DIR + "/users.csv";
-    private static final String TRANSACTIONS_FILE = DATA_DIR + "/transactions.csv";
-    private static final String REMOVED_FILE = DATA_DIR + "/removed_items.csv";
-    private static final String AUTH_FILE = DATA_DIR + "/users_auth.csv";
+    private static final String DATA_DIR = initializeDataDir();
+    private static final String BOOKS_FILE = DATA_DIR + File.separator + "books.csv";
+    private static final String USERS_FILE = DATA_DIR + File.separator + "users.csv";
+    private static final String TRANSACTIONS_FILE = DATA_DIR + File.separator + "transactions.csv";
+    private static final String REMOVED_FILE = DATA_DIR + File.separator + "removed_items.csv";
+    private static final String AUTH_FILE = DATA_DIR + File.separator + "users_auth.csv";
+
+    private static String initializeDataDir() {
+        // Allow override via system property for development
+        String prop = System.getProperty("app.dataDir");
+        if (prop != null) return prop;
+
+        // Use persistent OS folders to ensure the EXE works regardless of its location
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            String appData = System.getenv("APPDATA");
+            if (appData != null) {
+                return appData + File.separator + "SmartLibrary" + File.separator + "data";
+            }
+        }
+        return System.getProperty("user.home") + File.separator + ".smartlibrary" + File.separator + "data";
+    }
 
     public FileManager() {
         File dir = new File(DATA_DIR);
@@ -323,31 +338,32 @@ public class FileManager implements Storage {
     public List<AuthAccount> loadAuthAccounts() {
         List<AuthAccount> accounts = new ArrayList<>();
         File file = new File(AUTH_FILE);
-        if (!file.exists()) return accounts;
+        if (file.exists()) {
+            try (BufferedReader r = new BufferedReader(new FileReader(file))) {
+                String line;
+                boolean header = true;
+                while ((line = r.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty()) continue;
+                    if (header) { header = false; if (line.startsWith("username")) continue; }
 
-        try (BufferedReader r = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean header = true;
-            while ((line = r.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) continue;
-                if (header) { header = false; if (line.startsWith("username")) continue; }
-
-                String[] p = parseCsvLine(line);
-                if (p.length >= 6) {
-                    accounts.add(new AuthAccount(
-                            p[0].trim(),
-                            p[1].trim(),
-                            p[2].trim(),
-                            p[3].trim(),
-                            p[4].trim(),
-                            p[5].trim()));
-                } else {
-                    System.err.println("[FileManager] Skipping bad auth line: " + line);
+                    String[] p = parseCsvLine(line);
+                    if (p.length >= 6) {
+                        accounts.add(new AuthAccount(p[0].trim(), p[1].trim(), p[2].trim(),
+                                p[3].trim(), p[4].trim(), p[5].trim()));
+                    }
                 }
+            } catch (IOException e) {
+                throw new FileHandlingException("Could not read " + AUTH_FILE, e);
             }
-        } catch (IOException e) {
-            throw new FileHandlingException("Could not read " + AUTH_FILE, e);
+        }
+
+        if (accounts.isEmpty()) {
+            // Seed a default administrator if no accounts exist (Pass: admin)
+            AuthAccount admin = new AuthAccount("admin", "System Administrator", "admin@library.com", 
+                    "000", "ADMIN", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918");
+            accounts.add(admin);
+            saveAuthAccounts(accounts);
         }
         return accounts;
     }

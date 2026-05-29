@@ -3,6 +3,10 @@ target/
 out/
 build/
 
+# ── Distribution (except for the exe we want to ship) ──
+dist/
+!dist/*.exe
+
 # ── IDE files ────────────────────────────────────────────
 .idea/
 *.iml
