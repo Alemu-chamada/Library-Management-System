@@ -1,0 +1,25 @@
+# ── Compiled output ─────────────────────────────────────
+target/
+out/
+build/
+
+# ── IDE files ────────────────────────────────────────────
+.idea/
+*.iml
+*.class
+
+# ── OS files ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+
+# ── Live runtime data (real user/book records) ───────────
+# These are generated at runtime. Only the empty templates
+# in data/templates/ are committed to the repo.
+data/users.csv
+data/users_auth.csv
+data/books.csv
+data/transactions.csv
+data/removed_items.csv
