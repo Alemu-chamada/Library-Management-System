@@ -18,7 +18,7 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 🔐 Authentication Portal
 | Light Mode | Dark Mode |
 | :---: | :---: |
-| ![Login dark Mode](docs/screenshots/login_light_mode.jpg) | ![Login light Mode](docs/screenshots/login_dark_mode.jpg) |
+| ![Login dark Mode](docs/screenshots/login_darkt_mode.jpg) | ![Login light Mode](docs/screenshots/login_light_mode.jpg) |
 | *Clean, focused credentials input with validation feedback.* | *Beautiful dark-themed workspace layout to reduce eye strain.* |
 
 > [!NOTE]
