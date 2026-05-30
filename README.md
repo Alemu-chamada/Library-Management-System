@@ -13,6 +13,7 @@ Equipped with role-based access control, cryptographic password security, and a 
 ---
 
 ## 📋 Table of Contents
+- [Download & Installation](#-download--installation)
 - [User Interface Screenshots](#-user-interface-screenshots)
 - [Key Features](#-key-features)
 - [Project Structure](#-project-structure)
@@ -20,6 +21,38 @@ Equipped with role-based access control, cryptographic password security, and a 
 - [Creating Release Packages](#-creating-release-packages)
 - [Local Storage Architecture](#-local-storage-architecture)
 - [License & Versioning](#-license--versioning)
+
+---
+
+## 📥 Download & Installation
+
+### For End Users
+
+#### 1. Get SmartLibrary from GitHub Releases
+1. Visit the GitHub repository: [https://github.com/Alemu-chamada/Library-Management-System](https://github.com/Alemu-chamada/Library-Management-System)
+2. Click on the **Releases** tab (or go directly to: [https://github.com/Alemu-chamada/Library-Management-System/releases](https://github.com/Alemu-chamada/Library-Management-System/releases))
+3. Download the latest release:
+   - **Option 1 (Recommended):** Download `SmartLibrary-Setup.exe` for a guided installation
+   - **Option 2:** Download `SmartLibrary-1.0.0-win64.zip` for a portable version
+
+#### 2. Install SmartLibrary
+
+##### Using the Installer (SmartLibrary-Setup.exe)
+1. Double-click the downloaded `SmartLibrary-Setup.exe`
+2. Follow the installation wizard
+3. SmartLibrary will be installed and shortcuts will be created on your Desktop and Start Menu
+
+##### Using the Portable Version (SmartLibrary-1.0.0-win64.zip)
+1. Extract the ZIP file to your desired location
+2. Navigate to the extracted folder
+3. Double-click `SmartLibrary.exe` to launch the application
+
+#### 3. First-Time Setup
+After launching SmartLibrary for the first time:
+- Log in with the default admin credentials:
+  - **Username:** `admin`
+  - **Password:** `admin`
+- **Important:** You will be prompted to change the admin password immediately for security
 
 ---
 
