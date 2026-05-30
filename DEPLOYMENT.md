@@ -16,29 +16,30 @@ SmartLibrary is designed as a lightweight, zero-dependency desktop client:
 
 ## 📦 Distribution Formats
 
-The automated build system produces two formats under the `dist/` folder:
+The automated build system produces all outputs under the `build/` folder:
 
-### 1. Native Windows Installer (Recommended)
-* **File:** `SmartLibrary-Setup.exe`
-* **Features:**
-  - Installs into `C:\Users\<User>\AppData\Local\SmartLibrary`
-  - Adds shortcut to Windows Start Menu and Desktop
-  - Automatic registry registration
-* **Data Storage:** Production data is sandboxed securely under the user profile:
-  ```text
-  %APPDATA%\SmartLibrary\data\
-  ```
-  *(Translates to: `C:\Users\<Username>\AppData\Roaming\SmartLibrary\data\`)*
+### Build Output Structure
+```
+build/
+├── jar/
+│   └── SmartLibrary.jar          # Executable JAR file
+└── package/
+    └── SmartLibrary/
+        ├── SmartLibrary.zip      # Portable ZIP package
+        ├── SmartLibrary.exe      # Runnable Windows executable
+        ├── app/                  # Application files
+        └── runtime/              # Bundled Java Runtime Environment
+```
 
-### 2. Portable Package
-* **File:** `SmartLibrary-1.0.0-win64.zip`
+### Portable Package
+* **Location:** `build/package/SmartLibrary/`
 * **Features:**
   - Zero-installation needed. Ideal for running from shared network drives or USB sticks.
-  - Simply extract the ZIP file to any directory (e.g., `C:\Program Files\SmartLibrary\`).
-* **Execution:** Run the `SmartLibrary.exe` inside the extracted folder.
+  - Simply run `SmartLibrary.exe` directly from `build/package/SmartLibrary/`
+* **Execution:** Run the `SmartLibrary.exe`
   
 > [!WARNING]
-> Do not move `SmartLibrary.exe` out of its root directory. It requires the accompanying `app/` and `runtime/` sub-folders to launch.
+> Do not move `SmartLibrary.exe` out of its directory. It requires the accompanying `app/` and `runtime/` sub-folders to launch.
 
 ---
 
@@ -48,7 +49,6 @@ Production binaries should be built on a clean machine to guarantee artifact sec
 
 ### Build Prerequisites
 1. **JDK 17+:** Standard compiler toolchain.
-2. **WiX Toolset v3.x+:** (Required for generating `SmartLibrary-Setup.exe`). Ensure the WiX binaries are added to your Windows system PATH environment variable.
 
 ### Compilation and Packaging
 Execute the master build script from the project root:
@@ -58,20 +58,17 @@ build.bat
 *This triggers the PowerShell builder script `scripts/build.ps1` which automatically compiles, tests, links, and zips the files.*
 
 ### Release Checklist
-Follow these steps to publish a new version to GitHub:
+Follow these steps to publish a new version:
 1. **Tag the Release:**
    ```cmd
    git tag -a v1.0.0 -m "Release version 1.0.0"
    git push origin v1.0.0
    ```
 2. Run `build.bat` on the build machine.
-3. Open GitHub and navigate to **Releases** -> **Draft a new release**.
-4. Link the release to the `v1.0.0` tag.
-5. Upload the built binaries from `dist/`:
-   - `SmartLibrary-Setup.exe`
-   - `SmartLibrary-1.0.0-win64.zip`
-6. Copy release notes from [CHANGELOG.md](CHANGELOG.md).
-7. Publish the release.
+3. The final artifacts are located under `build/package/SmartLibrary/`:
+   - `SmartLibrary.exe` (runnable)
+   - `SmartLibrary.zip` (portable package)
+4. Copy release notes from [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

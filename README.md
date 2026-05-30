@@ -78,8 +78,9 @@ SmartLibrary/
 ├── data/                     # Local development CSV file storage (gitignored)
 ├── docs/screenshots/         # UI images shown in this README
 ├── scripts/                  # Cross-platform build & launch automation files
-├── build/                    # Generated build cache (gitignored)
-└── dist/                     # Final binary executable releases (gitignored)
+└── build/                    # Generated build artifacts (gitignored)
+    ├── jar/                  # Compiled JAR file
+    └── package/SmartLibrary/ # Final runnable application
 ```
 
 ---
@@ -113,12 +114,14 @@ To build production-ready, native Windows binaries (independent of any system-wi
 build.bat
 ```
 
-The script will compile the code, bundle resources, shrink a custom JRE, and generate the following output artifacts under `dist/`:
+The script will compile the code, bundle resources, shrink a custom JRE, and generate the following output artifacts under `build/`:
 
 | Build Output | Target Use Case | Setup Prerequisites |
 |---|---|---|
-| `dist/SmartLibrary-1.0.0-win64.zip` | **Portable release** (extract & run) | None (standard build) |
-| `dist/SmartLibrary-Setup.exe` | **Native Windows installer** | [WiX Toolset v3.x+](https://wixtoolset.org/) installed |
+| `build/jar/SmartLibrary.jar` | Executable JAR file | None |
+| `build/package/SmartLibrary/SmartLibrary.exe` | Directly runnable Windows executable | None |
+| `build/package/SmartLibrary-1.0.0-win64.zip` | **Portable release** (extract & run) | None |
+| `build/package/SmartLibrary-Setup.exe` | **Native Windows installer** | [WiX Toolset v3.x+](https://wixtoolset.org/) installed |
 
 ---
 

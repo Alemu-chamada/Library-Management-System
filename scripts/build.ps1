@@ -14,15 +14,15 @@ $JAR_NAME       = "SmartLibrary.jar"
 $SRC_DIR        = "src\main\java"
 $RESOURCES_DIR  = "src\main\resources"
 $BUILD_DIR      = "build"
-$DIST_DIR       = "dist"
+$PACKAGE_DIR    = "$BUILD_DIR\package"
 $CLASSES_DIR    = "$BUILD_DIR\classes"
 $JAR_DIR        = "$BUILD_DIR\jar"
 $APP_IMAGE_ROOT = "$BUILD_DIR\app-image"
 $INSTALLER_ROOT = "$BUILD_DIR\installer"
 $APP_DIR        = "$APP_IMAGE_ROOT\$APP_NAME"
-$SETUP_EXE      = "$DIST_DIR\SmartLibrary-Setup.exe"
-$PORTABLE_DIR   = "$DIST_DIR\$APP_NAME"
-$RELEASE_ZIP    = "$DIST_DIR\$APP_NAME-$APP_VERSION-win64.zip"
+$PORTABLE_DIR   = "$PACKAGE_DIR\$APP_NAME"
+$SETUP_EXE      = "$PACKAGE_DIR\SmartLibrary-Setup.exe"
+$RELEASE_ZIP    = "$PACKAGE_DIR\SmartLibrary-$APP_VERSION-win64.zip"
 
 $propsFile = "$RESOURCES_DIR\application.properties"
 if (Test-Path $propsFile) {
@@ -46,7 +46,7 @@ Write-Host "#####################################################" -ForegroundCo
 Get-Process -Name $APP_NAME -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
 
-$totalSteps = 9
+$totalSteps = 10
 
 Write-Step 1 $totalSteps "Checking build tools..."
 foreach ($tool in @("javac", "jar", "jpackage")) {
@@ -57,10 +57,10 @@ foreach ($tool in @("javac", "jar", "jpackage")) {
 Write-OK "Build tools ready. ($(javac --version 2>&1))"
 
 Write-Step 2 $totalSteps "Preparing build directories..."
-foreach ($dir in @($BUILD_DIR, $CLASSES_DIR, $JAR_DIR, $APP_IMAGE_ROOT, $INSTALLER_ROOT, $DIST_DIR)) {
+foreach ($dir in @($BUILD_DIR, $CLASSES_DIR, $JAR_DIR, $APP_IMAGE_ROOT, $INSTALLER_ROOT, $PACKAGE_DIR)) {
     if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }
 }
-New-Item -ItemType Directory -Path $CLASSES_DIR, $JAR_DIR, $APP_IMAGE_ROOT, $INSTALLER_ROOT, $DIST_DIR -Force | Out-Null
+New-Item -ItemType Directory -Path $CLASSES_DIR, $JAR_DIR, $APP_IMAGE_ROOT, $INSTALLER_ROOT, $PACKAGE_DIR -Force | Out-Null
 Write-OK "Directories ready."
 
 Write-Step 3 $totalSteps "Compiling sources..."
@@ -115,7 +115,12 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path "$APP_DIR\$APP_NAME.exe")) {
 }
 Write-OK "Portable app: $APP_DIR\$APP_NAME.exe"
 
-Write-Step 7 $totalSteps "Creating Windows installer (SmartLibrary-Setup.exe)..."
+Write-Step 7 $totalSteps "Publishing portable application..."
+if (Test-Path $PORTABLE_DIR) { Remove-Item $PORTABLE_DIR -Recurse -Force -ErrorAction SilentlyContinue }
+Copy-Item $APP_DIR $PORTABLE_DIR -Recurse -Force
+Write-OK "Portable: $PORTABLE_DIR\$APP_NAME.exe"
+
+Write-Step 8 $totalSteps "Creating Windows installer (SmartLibrary-Setup.exe)..."
 $installerBuilt = $false
 try {
     if (Test-Path $INSTALLER_ROOT) { Remove-Item $INSTALLER_ROOT -Recurse -Force -ErrorAction SilentlyContinue }
@@ -136,7 +141,7 @@ try {
         Write-OK "Installer: $SETUP_EXE"
         $installerBuilt = $true
     } else {
-        Write-Warn "Installer not created (install WiX Toolset for SmartLibrary-Setup.exe)."
+        Write-Warn "Installer not created (install WiX Toolset for SmartLibrary-Setup.exe)"
         if (Test-Path $errLog) { Get-Content $errLog | Select-Object -Last 8 | Write-Host }
     }
 } catch {
@@ -144,20 +149,17 @@ try {
     if (Test-Path $errLog) { Get-Content $errLog | Select-Object -Last 8 | Write-Host }
 }
 
-Write-Step 8 $totalSteps "Publishing release artifacts..."
-if (Test-Path $PORTABLE_DIR) { Remove-Item $PORTABLE_DIR -Recurse -Force -ErrorAction SilentlyContinue }
-Copy-Item $APP_DIR $PORTABLE_DIR -Recurse -Force
-Write-OK "Portable: $PORTABLE_DIR\$APP_NAME.exe"
-
+Write-Step 9 $totalSteps "Creating release zip..."
 try {
     if (Test-Path $RELEASE_ZIP) { Remove-Item $RELEASE_ZIP -Force }
-    Compress-Archive -Path $PORTABLE_DIR -DestinationPath $RELEASE_ZIP -Force
+    # Compress the contents of $PORTABLE_DIR (not the directory itself)
+    Get-ChildItem -Path $PORTABLE_DIR | Compress-Archive -DestinationPath $RELEASE_ZIP -Force
     Write-OK "Release zip: $RELEASE_ZIP"
 } catch {
     Write-Warn "Zip skipped (close SmartLibrary if running): $RELEASE_ZIP"
 }
 
-Write-Step 9 $totalSteps "Smoke-testing portable EXE..."
+Write-Step 10 $totalSteps "Smoke-testing portable EXE..."
 Get-Process -Name $APP_NAME -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
 $proc = Start-Process -FilePath "$PORTABLE_DIR\$APP_NAME.exe" -PassThru
