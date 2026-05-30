@@ -1,4 +1,4 @@
-package library.gui;
+package library.gui.controller;
 
 import library.exception.*;
 import library.io.FileManager;

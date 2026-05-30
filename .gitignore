@@ -1,29 +1,29 @@
-# ── Compiled output ─────────────────────────────────────
+# ── Build output ─────────────────────────────────────────
+build/
+build-dev/
+dist/
+
+# ── Compiled / generated ─────────────────────────────────
 target/
 out/
-build/
-
-# ── Distribution (except for the exe we want to ship) ──
-dist/
-!dist/*.exe
-
-# ── IDE files ────────────────────────────────────────────
-.idea/
-*.iml
 *.class
 
-# ── OS files ─────────────────────────────────────────────
-.DS_Store
-Thumbs.db
+# ── Legacy folders ───────────────────────────────────────
+photo/
+photos/
+app/
+data/templates/
 
-# ── Logs ─────────────────────────────────────────────────
-*.log
-
-# ── Live runtime data (real user/book records) ───────────
-# These are generated at runtime. Only the empty templates
-# in data/templates/ are committed to the repo.
+# ── Live runtime data (dev only; never commit records) ───
+data/books.csv
 data/users.csv
 data/users_auth.csv
-data/books.csv
 data/transactions.csv
 data/removed_items.csv
+
+# ── IDE / OS ─────────────────────────────────────────────
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.log

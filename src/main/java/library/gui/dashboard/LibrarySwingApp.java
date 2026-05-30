@@ -1,10 +1,15 @@
-package library.gui;
+package library.gui.dashboard;
 
+import library.auth.AuthConstants;
+import library.config.AppInfo;
 import library.exception.*;
-import library.model.*;
+import library.gui.auth.AuthPortalPanel;
 import library.gui.components.CustomButton;
 import library.gui.components.DashboardCard;
 import library.gui.components.VectorIcon;
+import library.gui.controller.LibraryController;
+import library.model.*;
+import library.util.StartupErrorHandler;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static library.gui.UIHelper.*;
+import static library.gui.util.UIHelper.*;
 import static library.gui.components.VectorIcon.IconType.*;
 
 public class LibrarySwingApp extends JFrame {
@@ -38,7 +43,7 @@ public class LibrarySwingApp extends JFrame {
     private AuthAccount currentUser = null;
 
     public LibrarySwingApp() {
-        setTitle("Library Management System");
+        setTitle(AppInfo.NAME + " — Library Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 750);
         setMinimumSize(new Dimension(900, 600));
@@ -59,7 +64,20 @@ public class LibrarySwingApp extends JFrame {
 
     private void onLoginSuccess(AuthAccount account) {
         this.currentUser = account;
+        warnIfDefaultAdminCredentials(account);
         setupAuthenticatedUI();
+    }
+
+    private void warnIfDefaultAdminCredentials(AuthAccount account) {
+        if (account == null) return;
+        if ("admin".equalsIgnoreCase(account.getUsername())
+                && AuthConstants.DEFAULT_ADMIN_PASSWORD_HASH.equals(account.getPasswordHash())) {
+            JOptionPane.showMessageDialog(this,
+                    "You are signed in with the factory default administrator password.\n"
+                            + "Change it immediately under User Profiles or register a new admin account.",
+                    "Security notice",
+                    JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void setupAuthenticatedUI() {
@@ -115,7 +133,7 @@ public class LibrarySwingApp extends JFrame {
         userLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         rightWrap.add(userLabel);
 
-        versionLabel = new JLabel("v1.0  ");
+        versionLabel = new JLabel(AppInfo.VERSION_LABEL + "  ");
         versionLabel.setForeground(TEXT_GRAY);
         versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         rightWrap.add(versionLabel);
@@ -1673,8 +1691,23 @@ public class LibrarySwingApp extends JFrame {
     // ═══════════════════ LAUNCH ═══════════════════
 
     public static void launch() {
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-        catch (Exception ignored) {}
-        SwingUtilities.invokeLater(() -> new LibrarySwingApp().setVisible(true));
+        StartupErrorHandler.install();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {
+        }
+
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                try {
+                    LibrarySwingApp app = new LibrarySwingApp();
+                    app.setVisible(true);
+                } catch (Throwable t) {
+                    StartupErrorHandler.handle(t);
+                }
+            });
+        } catch (Exception e) {
+            StartupErrorHandler.handle(e);
+        }
     }
 }

@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static library.gui.UIHelper.*;
+import static library.gui.util.UIHelper.*;
 
 /**
  * A highly professional dashboard card with an icon, title, count, and description.

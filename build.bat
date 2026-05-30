@@ -1,3 +1,2 @@
 @echo off
-powershell -ExecutionPolicy Bypass -File "%~dp0build.ps1"
-pause
+call "%~dp0scripts\build.bat"

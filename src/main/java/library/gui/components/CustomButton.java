@@ -5,10 +5,10 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static library.gui.UIHelper.PRIMARY;
-import static library.gui.UIHelper.PRIMARY_HOVER;
-import static library.gui.UIHelper.isDarkMode;
-import static library.gui.UIHelper.BORDER;
+import static library.gui.util.UIHelper.PRIMARY;
+import static library.gui.util.UIHelper.PRIMARY_HOVER;
+import static library.gui.util.UIHelper.isDarkMode;
+import static library.gui.util.UIHelper.BORDER;
 
 /**
  * A professional, flat-styled button with modern hover effects.

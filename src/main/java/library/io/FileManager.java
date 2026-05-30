@@ -1,11 +1,14 @@
 package library.io;
 
+import library.auth.AuthConstants;
+import library.config.AppPaths;
 import library.exception.FileHandlingException;
 import library.model.AuthAccount;
 import library.model.Book;
 import library.model.RemovedItem;
 import library.model.Transaction;
 import library.model.User;
+import library.util.DataStoreInitializer;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -22,32 +25,19 @@ public class FileManager implements Storage {
 
     // In development: resolves to relative "data/" folder next to the project root.
     // When packaged with jpackage: resolves to $APPDIR/data (set via -Dapp.dataDir=$APPDIR/data).
-    private static final String DATA_DIR = initializeDataDir();
+    private static final String DATA_DIR = AppPaths.getDataDirectory();
     private static final String BOOKS_FILE = DATA_DIR + File.separator + "books.csv";
     private static final String USERS_FILE = DATA_DIR + File.separator + "users.csv";
     private static final String TRANSACTIONS_FILE = DATA_DIR + File.separator + "transactions.csv";
     private static final String REMOVED_FILE = DATA_DIR + File.separator + "removed_items.csv";
     private static final String AUTH_FILE = DATA_DIR + File.separator + "users_auth.csv";
 
-    private static String initializeDataDir() {
-        // Allow override via system property for development
-        String prop = System.getProperty("app.dataDir");
-        if (prop != null) return prop;
-
-        // Use persistent OS folders to ensure the EXE works regardless of its location
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("win")) {
-            String appData = System.getenv("APPDATA");
-            if (appData != null) {
-                return appData + File.separator + "SmartLibrary" + File.separator + "data";
-            }
-        }
-        return System.getProperty("user.home") + File.separator + ".smartlibrary" + File.separator + "data";
-    }
-
     public FileManager() {
-        File dir = new File(DATA_DIR);
-        if (!dir.exists()) dir.mkdirs();
+        DataStoreInitializer.ensureDataFiles();
+        File dir = new File(AppPaths.getDataDirectory());
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new IllegalStateException("Could not create data directory: " + dir.getAbsolutePath());
+        }
     }
 
     // ─── Books ──────────────────────────────────────────────────────────
@@ -359,9 +349,9 @@ public class FileManager implements Storage {
         }
 
         if (accounts.isEmpty()) {
-            // Seed a default administrator if no accounts exist (Pass: admin)
-            AuthAccount admin = new AuthAccount("admin", "System Administrator", "admin@library.com", 
-                    "000", "ADMIN", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918");
+            // First launch: create factory admin (username: admin — change password after login)
+            AuthAccount admin = new AuthAccount("admin", "System Administrator", "admin@library.com",
+                    "000", "ADMIN", AuthConstants.DEFAULT_ADMIN_PASSWORD_HASH);
             accounts.add(admin);
             saveAuthAccounts(accounts);
         }

@@ -1,14 +1,12 @@
 package library.service.impl;
 
+import library.auth.PasswordHasher;
 import library.exception.*;
 import library.io.Storage;
 import library.model.AuthAccount;
 import library.model.*;
 import library.service.LibraryService;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -107,7 +105,7 @@ public class LibraryServiceImpl implements LibraryService {
                     "An account with username '" + account.getUsername() + "' already exists.");
         }
 
-        String normalizedPasswordHash = hashPassword(account.getPasswordHash());
+        String normalizedPasswordHash = PasswordHasher.hash(account.getPasswordHash());
         AuthAccount stored = new AuthAccount(
                 account.getUsername().trim(),
                 account.getFullName(),
@@ -131,7 +129,7 @@ public class LibraryServiceImpl implements LibraryService {
             throw new InvalidInputException("Invalid username or password.");
         }
 
-        String candidateHash = hashPassword(password);
+        String candidateHash = PasswordHasher.hash(password);
         if (!candidateHash.equals(account.getPasswordHash())) {
             throw new InvalidInputException("Invalid username or password.");
         }
@@ -332,21 +330,6 @@ public class LibraryServiceImpl implements LibraryService {
     private void validateNotBlank(String value, String field) throws InvalidInputException {
         if (value == null || value.isBlank()) {
             throw new InvalidInputException(field + " cannot be empty.");
-        }
-    }
-
-    private String hashPassword(String password) {
-        if (password == null) return "";
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(password.trim().getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashed) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Password hashing unavailable", e);
         }
     }
 

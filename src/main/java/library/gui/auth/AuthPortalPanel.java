@@ -1,8 +1,10 @@
-package library.gui;
+package library.gui.auth;
 
 import library.exception.InvalidInputException;
 import library.gui.components.CustomButton;
 import library.gui.components.VectorIcon;
+import library.gui.controller.LibraryController;
+import library.gui.dashboard.LibrarySwingApp;
 import library.model.AuthAccount;
 
 import javax.swing.*;
@@ -12,7 +14,7 @@ import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.function.Consumer;
 
-import static library.gui.UIHelper.*;
+import static library.gui.util.UIHelper.*;
 import static library.gui.components.VectorIcon.IconType.*;
 
 /**

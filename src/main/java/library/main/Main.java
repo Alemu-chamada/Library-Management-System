@@ -1,14 +1,21 @@
 package library.main;
 
+import library.util.StartupErrorHandler;
+
 /**
- * Official entry point for the packaged SmartLibrary application.
- * Delegates directly to LibraryApp which handles GUI / console mode dispatch.
- *
- * Main class used by jpackage: library.main.Main
+ * JAR / jpackage entry point. Delegates to {@link LibraryApp}.
  */
-public class Main {
+public final class Main {
+
+    private Main() {}
 
     public static void main(String[] args) {
-        LibraryApp.main(args);
+        StartupErrorHandler.install();
+        try {
+            LibraryApp.main(args);
+        } catch (Throwable t) {
+            StartupErrorHandler.handle(t);
+            System.exit(1);
+        }
     }
 }

@@ -1,4 +1,4 @@
-package library.gui;
+package library.gui.util;
 
 import javax.swing.*;
 import javax.swing.table.*;
