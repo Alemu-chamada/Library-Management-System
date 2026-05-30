@@ -1,13 +1,25 @@
-# 📚 SmartLibrary
+# 📚 SmartLibrary - Library Management System
 
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg)](#)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![GUI](https://img.shields.io/badge/GUI-Java%20Swing%20%2F%20FlatLaf-blueviolet.svg)](#)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-green.svg)](#)
 
-SmartLibrary is a professional, high-performance desktop **Library Management System** engineered with pure Java and modern Swing. It features an offline-first architecture using lightweight CSV persistence, eliminating the need for heavy database server installations. 
+SmartLibrary is a professional, high-performance desktop **Library Management System** engineered with pure Java and modern Swing. It features an offline-first architecture using lightweight CSV persistence, eliminating the need for heavy database server installations.
 
 Equipped with role-based access control, cryptographic password security, and a beautiful responsive interface supporting dynamic light/dark mode themes, SmartLibrary is ready for deployment in small to medium libraries, schools, or private collections.
+
+---
+
+## 📋 Table of Contents
+- [User Interface Screenshots](#-user-interface-screenshots)
+- [Key Features](#-key-features)
+- [Project Structure](#-project-structure)
+- [Getting Started for Developers](#-getting-started-for-developers)
+- [Creating Release Packages](#-creating-release-packages)
+- [Local Storage Architecture](#-local-storage-architecture)
+- [License & Versioning](#-license--versioning)
 
 ---
 
@@ -18,23 +30,23 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 🔐 Authentication Portal
 | Light Mode | Dark Mode |
 | :---: | :---: |
-| ![Login Light Mode](docs/screenshots/login_light_mode.jpg) | ![Login Dark Mode](docs/screenshots/login_dark_mode.jpg) |
+| ![Login Light Mode](screenshots/login_light_mode.jpg) | ![Login Dark Mode](screenshots/login_dark_mode.jpg) |
 | *Clean, focused credentials input with validation feedback.* | *Beautiful dark-themed workspace layout to reduce eye strain.* |
 
 > [!NOTE]
 > Below is an alternative view of the login window demonstrating responsive form elements and professional layouts.
-> ![Login Light Mode Alternate](docs/screenshots/login_light_mode_2.jpg)
+> ![Login Light Mode Alternate](screenshots/login_light_mode_2.jpg)
 
 ### 👥 User Profiles & Membership Management
 | Light Mode View | Dark Mode View |
 | :---: | :---: |
-| ![User Profiles Light Mode](docs/screenshots/user_profiles_light_mode.jpg) | ![User Profiles Dark Mode](docs/screenshots/user_profiles_dark_mode.jpg) |
+| ![User Profiles Light Mode](screenshots/user_profiles_light_mode.jpg) | ![User Profiles Dark Mode](screenshots/user_profiles_dark_mode.jpg) |
 | *Role and permission grids with light aesthetic accents.* | *Professional layout with custom high-contrast dark accents.* |
 
 ### 📝 Member Registration Panel
 Below is the registration workflow interface, showing real-time password strength validation and role assignment:
 <p align="center">
-  <img src="docs/screenshots/register_dark_mode.jpg" alt="Register Dark Mode" width="70%" />
+  <img src="screenshots/register_dark_mode.jpg" alt="Register Dark Mode" width="70%" />
 </p>
 
 ---
@@ -75,11 +87,11 @@ SmartLibrary/
 │   ├── themes/               # Theme definition files
 │   ├── templates/            # Default empty CSV tables to seed on first run
 │   └── application.properties# System configuration properties
-├── data/                     # Local development CSV file storage (gitignored)
-├── docs/screenshots/         # UI images shown in this README
-├── scripts/                  # Cross-platform build & launch automation files
+├── screenshots/              # UI screenshots
+├── scripts/                  # Build & launch automation files
+├── data/                     # Local development CSV storage (gitignored)
 ├── build/                    # Generated build cache (gitignored)
-└── dist/                     # Final binary executable releases (gitignored)
+└── dist/                     # Binary releases (gitignored)
 ```
 
 ---
@@ -137,5 +149,5 @@ For instructions on backup workflows, recovery, security hardening, and deployme
 
 ## 📄 License & Versioning
 - Version: **1.0.0**
-- License: **MIT License** — See the [LICENSE](LICENSE) file for details.
+- License: **Apache License 2.0** — See the [LICENSE](LICENSE) file for details.
 - Changelog: Check history & updates in the [CHANGELOG.md](CHANGELOG.md).

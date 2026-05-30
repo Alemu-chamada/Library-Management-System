@@ -4,6 +4,18 @@ This document outlines the professional deployment, distribution, backup, and se
 
 ---
 
+## 📋 Table of Contents
+- [System Requirements](#-system-requirements)
+- [Distribution Formats](#-distribution-formats)
+- [Build Pipeline & Release Checklist](#-build-pipeline--release-checklist)
+- [GitHub Release Process](#-github-release-process)
+- [Security Hardening & First-Run](#-security-hardening--first-run)
+- [Backup and Disaster Recovery](#-backup-and-disaster-recovery)
+- [Troubleshooting & Logs](#-troubleshooting--logs)
+- [License](#-license)
+
+---
+
 ## 📋 System Requirements
 
 SmartLibrary is designed as a lightweight, zero-dependency desktop client:
@@ -16,7 +28,7 @@ SmartLibrary is designed as a lightweight, zero-dependency desktop client:
 
 ## 📦 Distribution Formats
 
-The automated build system produces two formats under the `dist/` folder:
+The automated build system produces two formats under the `dist/` folder (gitignored from version control):
 
 ### 1. Native Windows Installer (Recommended)
 * **File:** `SmartLibrary-Setup.exe`
@@ -36,7 +48,7 @@ The automated build system produces two formats under the `dist/` folder:
   - Zero-installation needed. Ideal for running from shared network drives or USB sticks.
   - Simply extract the ZIP file to any directory (e.g., `C:\Program Files\SmartLibrary\`).
 * **Execution:** Run the `SmartLibrary.exe` inside the extracted folder.
-  
+
 > [!WARNING]
 > Do not move `SmartLibrary.exe` out of its root directory. It requires the accompanying `app/` and `runtime/` sub-folders to launch.
 
@@ -57,21 +69,48 @@ build.bat
 ```
 *This triggers the PowerShell builder script `scripts/build.ps1` which automatically compiles, tests, links, and zips the files.*
 
-### Release Checklist
+---
+
+## 📤 GitHub Release Process
+
 Follow these steps to publish a new version to GitHub:
-1. **Tag the Release:**
-   ```cmd
-   git tag -a v1.0.0 -m "Release version 1.0.0"
-   git push origin v1.0.0
-   ```
-2. Run `build.bat` on the build machine.
-3. Open GitHub and navigate to **Releases** -> **Draft a new release**.
-4. Link the release to the `v1.0.0` tag.
-5. Upload the built binaries from `dist/`:
-   - `SmartLibrary-Setup.exe`
-   - `SmartLibrary-1.0.0-win64.zip`
-6. Copy release notes from [CHANGELOG.md](CHANGELOG.md).
-7. Publish the release.
+
+### 1. Prepare the Repository
+Ensure your git repository is clean and all changes are committed:
+```cmd
+git status
+git add .
+git commit -m "Prepare for v1.0.0 release"
+```
+
+### 2. Tag the Release
+Create and push a version tag:
+```cmd
+git tag -a v1.0.0 -m "Release version 1.0.0"
+git push origin v1.0.0
+```
+
+### 3. Build the Binaries
+Run the build script to generate the release artifacts:
+```cmd
+build.bat
+```
+This will create:
+- `dist/SmartLibrary-Setup.exe`
+- `dist/SmartLibrary-1.0.0-win64.zip`
+
+### 4. Create GitHub Release
+1. Open your GitHub repository in a browser
+2. Navigate to **Releases** -> **Draft a new release**
+3. Select the `v1.0.0` tag you just created
+4. Add a release title: `v1.0.0`
+5. Copy release notes from [CHANGELOG.md](CHANGELOG.md)
+6. Upload the two binary files from the `dist/` folder
+7. Click **Publish release**
+
+### Important Notes
+- **Do NOT commit `dist/` or `build/` folders** — They are already gitignored and should only be uploaded as release assets
+- The `.gitignore` file excludes: `build/`, `dist/`, and development data files
 
 ---
 
@@ -121,3 +160,9 @@ If the application fails to launch or displays unexpected errors, logs are saved
 %APPDATA%\SmartLibrary\logs\error.log
 ```
 Check this file for system stacks or file access failures.
+
+---
+
+## 📄 License
+
+SmartLibrary is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
