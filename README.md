@@ -2,7 +2,7 @@
 
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg)](#)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache-green.svg)](LICENSE)
 [![GUI](https://img.shields.io/badge/GUI-Java%20Swing%20%2F%20FlatLaf-blueviolet.svg)](#)
 
 SmartLibrary is a professional, high-performance desktop **Library Management System** engineered with pure Java and modern Swing. It features an offline-first architecture using lightweight CSV persistence, eliminating the need for heavy database server installations. 
@@ -18,7 +18,7 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 🔐 Authentication Portal
 | Light Mode | Dark Mode |
 | :---: | :---: |
-| ![Login Light Mode](docs/screenshots/login_light_mode.jpg) | ![Login Dark Mode](docs/screenshots/login_dark_mode.jpg) |
+| ![Login dark Mode](docs/screenshots/login_light_mode.jpg) | ![Login light Mode](docs/screenshots/login_dark_mode.jpg) |
 | *Clean, focused credentials input with validation feedback.* | *Beautiful dark-themed workspace layout to reduce eye strain.* |
 
 > [!NOTE]
