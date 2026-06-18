@@ -87,7 +87,7 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 🔐 Authentication Portal
 | Light Mode | Dark Mode |
 | :---: | :---: |
-| ![Login Light Mode](screenshots/login_dark_mode.jpg) | ![Login Dark Mode](screenshots/login_light_mode.jpg) |
+| ![Login Light Mode](screenshots/login_light_mode.jpg) | ![Login Dark Mode](screenshots/login_dark_mode.jpg) |
 | *Clean, focused credentials input with validation feedback.* | *Beautiful dark-themed workspace layout to reduce eye strain.* |
 
 > [!NOTE]
@@ -97,7 +97,7 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 👥 User Profiles & Membership Management
 | Light Mode View | Dark Mode View |
 | :---: | :---: |
-| ![User Profiles Dark Mode](screenshots/user_profiles_light_mode.jpg) | ![User Profiles Light Mode](screenshots/user_profiles_dark_mode.jpg) |
+| ![User Profiles Light Mode](screenshots/user_profiles_light_mode.jpg) | ![User Profiles Dark Mode](screenshots/user_profiles_dark_mode.jpg) |
 | *Role and permission grids with light aesthetic accents.* | *Professional layout with custom high-contrast dark accents.* |
 
 ### 📝 Member Registration Panel
@@ -228,7 +228,7 @@ We welcome contributions! Please feel free to submit a Pull Request.
 ---
 
 ## 📄 License & Versioning
-- Version: **1.0.0**
+- Version: **1.0.1**
 - License: **Apache License 2.0** — See the [LICENSE](LICENSE) file for details.
-- Changelog: Check history & updates in the [CHANGELOG.md](CHANGELOG.md).
+- Changelog: Check history &amp; updates in the [CHANGELOG.md](CHANGELOG.md).
 - Author: Alemu Chamada
