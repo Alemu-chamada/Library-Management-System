@@ -157,16 +157,20 @@ try {
     Write-Warn "Zip skipped (close SmartLibrary if running): $RELEASE_ZIP"
 }
 
-Write-Step 9 $totalSteps "Smoke-testing portable EXE..."
+Write-Step 9 $totalSteps "Smoke-testing portable EXE (using temp data dir)..."
 Get-Process -Name $APP_NAME -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
+$tempData = Join-Path $env:TEMP "SmartLibrary_TestData_$(Get-Date -Format 'yyyyMMddHHmmss')"
+New-Item -ItemType Directory -Path $tempData -Force | Out-Null
+$env:APPDATA = Split-Path $tempData -Parent # Make app use temp dir instead of real %APPDATA%
 $proc = Start-Process -FilePath "$PORTABLE_DIR\$APP_NAME.exe" -PassThru
 Start-Sleep -Seconds 4
 if ($proc.HasExited) {
-    Write-Err "Portable EXE exited immediately (code $($proc.ExitCode)). Check logs under %APPDATA%\SmartLibrary\logs\error.log"
+    Write-Err "Portable EXE exited immediately (code $($proc.ExitCode)). Check logs under $tempData\logs\error.log"
 }
 Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-Write-OK "Portable EXE stayed running."
+Remove-Item $tempData -Recurse -Force -ErrorAction SilentlyContinue
+Write-OK "Portable EXE stayed running (tested with temp data)."
 
 Write-Host ""
 Write-Host "=====================================================" -ForegroundColor Green
