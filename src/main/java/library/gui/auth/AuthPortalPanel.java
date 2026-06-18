@@ -18,9 +18,7 @@ import static library.gui.util.UIHelper.*;
 import static library.gui.components.VectorIcon.IconType.*;
 
 /**
- * A highly polished, modern, and professional authentication portal (Login + Register).
- * Designed with a centered visual auth card, dynamic light/dark mode support,
- * custom glassmorphism backgrounds, and responsive layouts.
+ * A highly polished, modern, and professional authentication portal (Login + Register + Reset).
  */
 public class AuthPortalPanel extends JPanel {
 
@@ -43,9 +41,15 @@ public class AuthPortalPanel extends JPanel {
     private JTextField regNameField;
     private JTextField regEmailField;
     private JTextField regPhoneField;
-    private JComboBox<String> regRoleCombo;
     private JPasswordField regPassField;
     private JPasswordField regConfirmPassField;
+    private JTextField regHintField;
+
+    // Reset password fields
+    private JTextField resetUserField;
+    private JTextField resetHintField;
+    private JPasswordField resetNewPassField;
+    private JPasswordField resetConfirmPassField;
 
     public AuthPortalPanel(LibrarySwingApp parentApp, LibraryController controller, Consumer<AuthAccount> onLoginSuccess) {
         this.parentApp = parentApp;
@@ -63,7 +67,7 @@ public class AuthPortalPanel extends JPanel {
         setLayout(null); // absolute layout for responsive floats
 
         // 850x520 px rectangular auth card size
-        Dimension cardSize = new Dimension(850, 530);
+        Dimension cardSize = new Dimension(850, 520);
 
         // Centered Auth Card Container
         cardContainer = new JPanel(new BorderLayout()) {
@@ -169,14 +173,14 @@ public class AuthPortalPanel extends JPanel {
                 }
             }
         });
-        
+
         toggleCheck.addActionListener(e -> {
             boolean show = toggleCheck.isSelected();
             if (!String.valueOf(field.getPassword()).equals(placeholder)) {
                 field.setEchoChar(show ? (char) 0 : '\u2022');
             }
         });
-        
+
         return field;
     }
 
@@ -270,9 +274,12 @@ public class AuthPortalPanel extends JPanel {
         JPanel loginPanel = buildLoginPanel();
         // Build register view
         JPanel registerPanel = buildRegisterPanel();
+        // Build reset password view
+        JPanel resetPanel = buildResetPanel();
 
         formCard.add(loginPanel, "LOGIN");
         formCard.add(registerPanel, "REGISTER");
+        formCard.add(resetPanel, "RESET");
 
         formLayout.show(formCard, "LOGIN");
 
@@ -357,7 +364,31 @@ public class AuthPortalPanel extends JPanel {
         loginPassField.addActionListener(enterSubmit);
 
         panel.add(loginBtn);
-        panel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(16));
+
+        // Forgot password link
+        JLabel forgotPassLabel = new JLabel("Forgot your password?");
+        forgotPassLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        forgotPassLabel.setForeground(PRIMARY);
+        forgotPassLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        forgotPassLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        forgotPassLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                formLayout.show(formCard, "RESET");
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                forgotPassLabel.setText("<html><u>Forgot your password?</u></html>");
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                forgotPassLabel.setText("Forgot your password?");
+            }
+        });
+        panel.add(forgotPassLabel);
+
+        panel.add(Box.createVerticalStrut(12));
 
         // Footer Register Link
         JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
@@ -408,7 +439,7 @@ public class AuthPortalPanel extends JPanel {
         registerLabel.setForeground(TEXT_DARK);
         registerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subLabel = new JLabel("Sign up for student or staff portal access");
+        JLabel subLabel = new JLabel("Sign up for library portal access");
         subLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         subLabel.setForeground(TEXT_GRAY);
         subLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -430,14 +461,7 @@ public class AuthPortalPanel extends JPanel {
         regNameField = createField("Full Name");
         regEmailField = createField("Email Address");
         regPhoneField = createField("Phone Number");
-
-        // Role select combobox
-        String[] roles = {"MEMBER", "LIBRARIAN", "ADMIN"};
-        regRoleCombo = new JComboBox<>(roles);
-        regRoleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        regRoleCombo.setBackground(FIELD_BG);
-        regRoleCombo.setForeground(TEXT_DARK);
-        regRoleCombo.setBorder(BorderFactory.createLineBorder(BORDER));
+        regHintField = createField("Hint Word (for password reset)");
 
         JCheckBox regShowPassCheck = new JCheckBox("Show Passwords");
         regShowPassCheck.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -454,7 +478,7 @@ public class AuthPortalPanel extends JPanel {
         addFormRow(fieldsPanel, "Full Name", regNameField, gbc, 1);
         addFormRow(fieldsPanel, "Email", regEmailField, gbc, 2);
         addFormRow(fieldsPanel, "Phone", regPhoneField, gbc, 3);
-        addFormRow(fieldsPanel, "Portal Role", regRoleCombo, gbc, 4);
+        addFormRow(fieldsPanel, "Hint Word", regHintField, gbc, 4);
         addFormRow(fieldsPanel, "Password", regPassField, gbc, 5);
         addFormRow(fieldsPanel, "Confirm Password", regConfirmPassField, gbc, 6);
         addFormRow(fieldsPanel, "", regShowPassCheck, gbc, 7);
@@ -516,6 +540,129 @@ public class AuthPortalPanel extends JPanel {
         return panel;
     }
 
+    private JPanel buildResetPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(40, 44, 40, 44));
+
+        // Header Title
+        JLabel resetLabel = new JLabel("Reset Password");
+        resetLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        resetLabel.setForeground(TEXT_DARK);
+        resetLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subLabel = new JLabel("Enter your username and hint word to reset");
+        subLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        subLabel.setForeground(TEXT_GRAY);
+        subLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        panel.add(resetLabel);
+        panel.add(Box.createVerticalStrut(4));
+        panel.add(subLabel);
+        panel.add(Box.createVerticalStrut(24));
+
+        // Inputs Layout Panel
+        JPanel inputsPanel = new JPanel();
+        inputsPanel.setLayout(new BoxLayout(inputsPanel, BoxLayout.Y_AXIS));
+        inputsPanel.setOpaque(false);
+        inputsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel userLabel = new JLabel("Username");
+        userLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        userLabel.setForeground(TEXT_DARK);
+        userLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetUserField = createField("Enter username");
+        resetUserField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetUserField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+
+        JLabel hintLabel = new JLabel("Hint Word");
+        hintLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        hintLabel.setForeground(TEXT_DARK);
+        hintLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetHintField = createField("Enter hint word");
+        resetHintField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetHintField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+
+        JCheckBox resetShowPass = new JCheckBox("Show Passwords");
+        resetShowPass.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        resetShowPass.setForeground(TEXT_GRAY);
+        resetShowPass.setOpaque(false);
+        resetShowPass.setFocusPainted(false);
+        resetShowPass.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        resetShowPass.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        resetNewPassField = createAuthPasswordField("New Password", resetShowPass);
+        resetNewPassField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetNewPassField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+
+        resetConfirmPassField = createAuthPasswordField("Confirm New Password", resetShowPass);
+        resetConfirmPassField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetConfirmPassField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+
+        inputsPanel.add(userLabel);
+        inputsPanel.add(Box.createVerticalStrut(4));
+        inputsPanel.add(resetUserField);
+        inputsPanel.add(Box.createVerticalStrut(10));
+        inputsPanel.add(hintLabel);
+        inputsPanel.add(Box.createVerticalStrut(4));
+        inputsPanel.add(resetHintField);
+        inputsPanel.add(Box.createVerticalStrut(10));
+        inputsPanel.add(resetNewPassField);
+        inputsPanel.add(Box.createVerticalStrut(4));
+        inputsPanel.add(resetConfirmPassField);
+        inputsPanel.add(Box.createVerticalStrut(4));
+        inputsPanel.add(resetShowPass);
+
+        panel.add(inputsPanel);
+        panel.add(Box.createVerticalStrut(24));
+
+        // Action buttons
+        CustomButton resetBtn = new CustomButton("Reset Password");
+        resetBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resetBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        resetBtn.addActionListener(e -> performReset());
+
+        panel.add(resetBtn);
+        panel.add(Box.createVerticalStrut(20));
+
+        // Back to Login Link
+        JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
+        linkPanel.setOpaque(false);
+        linkPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel backLabel = new JLabel("Remember your password?");
+        backLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        backLabel.setForeground(TEXT_GRAY);
+
+        JLabel loginLinkLabel = new JLabel("Sign In");
+        loginLinkLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        loginLinkLabel.setForeground(PRIMARY);
+        loginLinkLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginLinkLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                formLayout.show(formCard, "LOGIN");
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                loginLinkLabel.setText("<html><u>Sign In</u></html>");
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                loginLinkLabel.setText("Sign In");
+            }
+        });
+
+        linkPanel.add(backLabel);
+        linkPanel.add(loginLinkLabel);
+
+        panel.add(linkPanel);
+        panel.add(Box.createVerticalGlue());
+
+        return panel;
+    }
+
     private void addFormRow(JPanel panel, String labelText, JComponent field, GridBagConstraints gbc, int gridy) {
         gbc.gridy = gridy;
         gbc.gridx = 0;
@@ -552,12 +699,13 @@ public class AuthPortalPanel extends JPanel {
         String name = getFieldText(regNameField);
         String email = getFieldText(regEmailField);
         String phone = getFieldText(regPhoneField);
-        String role = (String) regRoleCombo.getSelectedItem();
+        String hint = getFieldText(regHintField);
         String password = getPasswordFieldText(regPassField, "Password");
         String confirmPassword = getPasswordFieldText(regConfirmPassField, "Confirm Password");
 
         if (username.isEmpty()) { showError(this, "Username is required."); return; }
         if (name.isEmpty()) { showError(this, "Full Name is required."); return; }
+        if (hint.isEmpty()) { showError(this, "Hint word is required."); return; }
         if (password.isEmpty()) { showError(this, "Password is required."); return; }
         if (!password.equals(confirmPassword)) {
             showError(this, "Passwords do not match.");
@@ -565,12 +713,40 @@ public class AuthPortalPanel extends JPanel {
         }
 
         try {
-            AuthAccount newAccount = new AuthAccount(username, name, email, phone, role, password);
+            AuthAccount newAccount = new AuthAccount(username, name, email, phone, password, hint);
             controller.registerAccount(newAccount);
             showSuccess(this, "Account registered successfully! Please login.");
             formLayout.show(formCard, "LOGIN");
 
             // Populate login field with newly registered username
+            loginUserField.setText(username);
+            loginUserField.setForeground(TEXT_DARK);
+            loginPassField.setText("");
+        } catch (InvalidInputException e) {
+            showError(this, e.getMessage());
+        }
+    }
+
+    private void performReset() {
+        String username = getFieldText(resetUserField);
+        String hint = getFieldText(resetHintField);
+        String newPassword = getPasswordFieldText(resetNewPassField, "New Password");
+        String confirmPassword = getPasswordFieldText(resetConfirmPassField, "Confirm New Password");
+
+        if (username.isEmpty()) { showError(this, "Username is required."); return; }
+        if (hint.isEmpty()) { showError(this, "Hint word is required."); return; }
+        if (newPassword.isEmpty()) { showError(this, "New password is required."); return; }
+        if (!newPassword.equals(confirmPassword)) {
+            showError(this, "Passwords do not match.");
+            return;
+        }
+
+        try {
+            controller.resetPassword(username, hint, newPassword);
+            showSuccess(this, "Password reset successfully! Please login.");
+            formLayout.show(formCard, "LOGIN");
+
+            // Populate login field
             loginUserField.setText(username);
             loginUserField.setForeground(TEXT_DARK);
             loginPassField.setText("");
@@ -588,7 +764,7 @@ public class AuthPortalPanel extends JPanel {
         // Draw linear gradient background
         int w = getWidth();
         int h = getHeight();
-        Color c1 = isDarkMode() ? new Color(14, 18, 30) : new Color(224, 233, 246);
+        Color c1 = isDarkMode() ? new Color(14, 18, 30) : new Color(224, 233, 245);
         Color c2 = isDarkMode() ? new Color(26, 32, 48) : new Color(245, 247, 252);
         GradientPaint gp = new GradientPaint(0, 0, c1, 0, h, c2);
         g2.setPaint(gp);

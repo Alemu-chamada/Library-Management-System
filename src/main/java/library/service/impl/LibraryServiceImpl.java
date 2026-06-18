@@ -98,7 +98,7 @@ public class LibraryServiceImpl implements LibraryService {
     public AuthAccount registerAccount(AuthAccount account) throws InvalidInputException {
         validateNotBlank(account.getUsername(), "Username");
         validateNotBlank(account.getPasswordHash(), "Password");
-        validateNotBlank(account.getRole(), "Role");
+        validateNotBlank(account.getHintWord(), "Hint word");
 
         if (findAccountByUsername(account.getUsername()) != null) {
             throw new InvalidInputException(
@@ -111,12 +111,31 @@ public class LibraryServiceImpl implements LibraryService {
                 account.getFullName(),
                 account.getEmail(),
                 account.getPhone(),
-                account.getRole().trim(),
-                normalizedPasswordHash);
+                normalizedPasswordHash,
+                account.getHintWord().trim());
 
         authAccounts.add(stored);
         storage.saveAuthAccounts(authAccounts);
         return stored;
+    }
+
+    @Override
+    public void resetPassword(String username, String hintWord, String newPassword) throws InvalidInputException {
+        validateNotBlank(username, "Username");
+        validateNotBlank(hintWord, "Hint word");
+        validateNotBlank(newPassword, "New password");
+
+        AuthAccount account = findAccountByUsername(username);
+        if (account == null) {
+            throw new InvalidInputException("Account not found.");
+        }
+
+        if (!hintWord.trim().equals(account.getHintWord())) {
+            throw new InvalidInputException("Invalid hint word.");
+        }
+
+        account.setPasswordHash(PasswordHasher.hash(newPassword));
+        storage.saveAuthAccounts(authAccounts);
     }
 
     @Override

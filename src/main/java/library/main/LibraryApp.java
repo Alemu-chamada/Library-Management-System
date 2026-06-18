@@ -15,7 +15,11 @@ public final class LibraryApp {
         StartupErrorHandler.install();
         try {
             DataStoreInitializer.ensureDataFiles();
-            LibrarySwingApp.launch();
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                LibrarySwingApp app = new LibrarySwingApp();
+                app.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+                app.setVisible(true);
+            });
         } catch (Throwable t) {
             StartupErrorHandler.handle(t);
             System.exit(1);

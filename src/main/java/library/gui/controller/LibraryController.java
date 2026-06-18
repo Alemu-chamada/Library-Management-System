@@ -77,4 +77,8 @@ public class LibraryController {
     public List<AuthAccount> getAllAuthAccounts() {
         return service.getAllAuthAccounts();
     }
+
+    public void resetPassword(String username, String hintWord, String newPassword) throws InvalidInputException {
+        service.resetPassword(username, hintWord, newPassword);
+    }
 }

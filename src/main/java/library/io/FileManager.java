@@ -307,7 +307,7 @@ public class FileManager implements Storage {
     @Override
     public void saveAuthAccounts(List<AuthAccount> accounts) {
         try (BufferedWriter w = new BufferedWriter(new FileWriter(AUTH_FILE))) {
-            w.write("username,fullName,email,phone,role,passwordHash");
+            w.write("username,fullName,email,phone,passwordHash,hintWord");
             w.newLine();
             for (AuthAccount account : accounts) {
                 w.write(String.join(",",
@@ -315,8 +315,8 @@ public class FileManager implements Storage {
                         csv(account.getFullName()),
                         csv(account.getEmail()),
                         csv(account.getPhone()),
-                        csv(account.getRole()),
-                        csv(account.getPasswordHash())));
+                        csv(account.getPasswordHash()),
+                        csv(account.getHintWord())));
                 w.newLine();
             }
         } catch (IOException e) {
@@ -338,9 +338,11 @@ public class FileManager implements Storage {
                     if (header) { header = false; if (line.startsWith("username")) continue; }
 
                     String[] p = parseCsvLine(line);
-                    if (p.length >= 6) {
+                    if (p.length >= 5) {
+                        // Handle both new and old formats (old format has role)
+                        String hintWord = (p.length >= 6) ? p[5].trim() : "";
                         accounts.add(new AuthAccount(p[0].trim(), p[1].trim(), p[2].trim(),
-                                p[3].trim(), p[4].trim(), p[5].trim()));
+                                p[3].trim(), p[5].trim(), hintWord));
                     }
                 }
             } catch (IOException e) {
@@ -351,7 +353,7 @@ public class FileManager implements Storage {
         if (accounts.isEmpty()) {
             // First launch: create factory admin (username: admin — change password after login)
             AuthAccount admin = new AuthAccount("admin", "System Administrator", "admin@library.com",
-                    "000", "ADMIN", AuthConstants.DEFAULT_ADMIN_PASSWORD_HASH);
+                    "000", AuthConstants.DEFAULT_ADMIN_PASSWORD_HASH, "admin123");
             accounts.add(admin);
             saveAuthAccounts(accounts);
         }

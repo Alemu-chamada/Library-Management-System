@@ -27,7 +27,7 @@ public final class DataStoreInitializer {
     private static final String[] DEFAULT_HEADERS = {
             "bookId,title,author,genre,quantity,available",
             "userId,name,email",
-            "username,fullName,email,phone,role,passwordHash",
+            "username,fullName,email,phone,passwordHash,hintWord",
             "transactionId,bookId,bookName,userId,userName,issueDate,returnDate,status",
             "itemType,itemId,itemName,removedAt"
     };

@@ -1,1 +1,1 @@
-username,fullName,email,phone,role,passwordHash
+username,fullName,email,phone,passwordHash,hintWord

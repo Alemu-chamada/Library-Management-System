@@ -15,7 +15,7 @@ public class VectorIcon implements Icon {
     public enum IconType {
         HOME, PLUS_BOOK, PERSON, ARROW_RIGHT, ARROW_LEFT, 
         LIBRARY, USERS, HISTORY, SEARCH, TRASH, LOGOUT,
-        MAIL, PHONE, LINK, MOON, SUN
+        MAIL, PHONE, LINK, MOON, SUN, MENU, NOTIFICATION
     }
 
     private final IconType type;
@@ -60,6 +60,8 @@ public class VectorIcon implements Icon {
             case LINK -> drawLink(g2, pad, pad, s);
             case MOON -> drawMoon(g2, pad, pad, s);
             case SUN -> drawSun(g2, pad, pad, s);
+            case MENU -> drawMenu(g2, pad, pad, s);
+            case NOTIFICATION -> drawNotification(g2, pad, pad, s);
         }
         g2.dispose();
     }
@@ -179,6 +181,30 @@ public class VectorIcon implements Icon {
             int y2 = y + s / 2 + (int) (Math.sin(a) * s * 0.50);
             g2.drawLine(x1, y1, x2, y2);
         }
+    }
+
+    private void drawMenu(Graphics2D g2, int x, int y, int s) {
+        int h = s / 6;
+        g2.drawLine(x + 4, y + h, x + s - 4, y + h);
+        g2.drawLine(x + 4, y + s / 2, x + s - 4, y + s / 2);
+        g2.drawLine(x + 4, y + s - h, x + s - 4, y + s - h);
+    }
+
+    private void drawNotification(Graphics2D g2, int x, int y, int s) {
+        // Bell shape
+        Path2D bell = new Path2D.Double();
+        bell.moveTo(x + s / 2.0, y + 2);
+        bell.curveTo(x + s - 6, y + 6, x + s - 2, y + s / 2.0, x + s - 2, y + s / 2.0 + 2);
+        bell.lineTo(x + s - 2, y + s - 8);
+        bell.lineTo(x + 2, y + s - 8);
+        bell.lineTo(x + 2, y + s / 2.0 + 2);
+        bell.curveTo(x + 2, y + s / 2.0, x + 6, y + 6, x + s / 2.0, y + 2);
+        g2.draw(bell);
+
+        // Clapper
+        g2.drawLine(x + s / 2 - 4, y + s - 8, x + s / 2 - 4, y + s - 4);
+        g2.drawLine(x + s / 2 + 4, y + s - 8, x + s / 2 + 4, y + s - 4);
+        g2.drawLine(x + s / 2 - 4, y + s - 4, x + s / 2 + 4, y + s - 4);
     }
 
     @Override

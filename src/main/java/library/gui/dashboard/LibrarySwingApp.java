@@ -20,6 +20,7 @@ import java.awt.event.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 import static library.gui.util.UIHelper.*;
@@ -37,10 +38,13 @@ public class LibrarySwingApp extends JFrame {
     private JLabel versionLabel;
     private JButton activeNavButton = null;
     private final List<JButton> navButtons = new ArrayList<>();
+    private final List<JLabel> navLabels = new ArrayList<>();
     private String currentScreen = "Dashboard";
     private String currentFilter = "ALL";
     private String currentDetailId = "";
     private AuthAccount currentUser = null;
+    private boolean sidebarExpanded = true;
+    private final Stack<ScreenState> screenHistory = new Stack<>();
 
     public LibrarySwingApp() {
         setTitle(AppInfo.NAME + " — Library Management");
@@ -51,6 +55,32 @@ public class LibrarySwingApp extends JFrame {
         setLayout(new BorderLayout());
 
         showAuthPortal();
+    }
+
+    private static class ScreenState {
+        String screen;
+        String filter;
+        String detailId;
+
+        ScreenState(String screen, String filter, String detailId) {
+            this.screen = screen;
+            this.filter = filter;
+            this.detailId = detailId;
+        }
+    }
+
+    private void saveHistory() {
+        screenHistory.push(new ScreenState(currentScreen, currentFilter, currentDetailId));
+    }
+
+    private void goBack() {
+        if (!screenHistory.isEmpty()) {
+            ScreenState state = screenHistory.pop();
+            currentScreen = state.screen;
+            currentFilter = state.filter;
+            currentDetailId = state.detailId;
+            renderCurrentScreen();
+        }
     }
 
     private void showAuthPortal() {
@@ -100,11 +130,11 @@ public class LibrarySwingApp extends JFrame {
     }
 
     private boolean isAdmin() {
-        return currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        return currentUser != null;
     }
 
     private boolean isLibrarian() {
-        return currentUser != null && "LIBRARIAN".equalsIgnoreCase(currentUser.getRole());
+        return currentUser != null;
     }
 
     private void logout() {
@@ -116,50 +146,350 @@ public class LibrarySwingApp extends JFrame {
     private JPanel buildHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(HEADER_BG);
-        header.setBorder(BorderFactory.createEmptyBorder(14, 22, 14, 22));
-        
-        headerTitle = new JLabel("Library Management System");
+        header.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+
+        // Left side: Logo and title
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        leftPanel.setOpaque(false);
+
+        JLabel logoLabel = new JLabel(new VectorIcon(LIBRARY, 32, TEXT_LIGHT));
+        leftPanel.add(logoLabel);
+
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setOpaque(false);
+
+        headerTitle = new JLabel(AppInfo.NAME);
         headerTitle.setForeground(TEXT_LIGHT);
-        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        headerTitle.setIconTextGap(12);
-        headerTitle.setIcon(new VectorIcon(LIBRARY, 24, TEXT_LIGHT));
-        header.add(headerTitle, BorderLayout.WEST);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titlePanel.add(headerTitle);
 
-        JPanel rightWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        rightWrap.setOpaque(false);
+        JLabel subtitleLabel = new JLabel("INSA Library Management");
+        subtitleLabel.setForeground(new Color(156, 163, 175));
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        titlePanel.add(subtitleLabel);
 
-        JLabel userLabel = new JLabel(currentUser != null ? currentUser.getDisplayName() + " (" + currentUser.getRole() + ")  " : "");
-        userLabel.setForeground(TEXT_LIGHT);
-        userLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        rightWrap.add(userLabel);
+        leftPanel.add(titlePanel);
+        header.add(leftPanel, BorderLayout.WEST);
 
-        versionLabel = new JLabel(AppInfo.VERSION_LABEL + "  ");
-        versionLabel.setForeground(TEXT_GRAY);
-        versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        rightWrap.add(versionLabel);
+        // Center: Search bar
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        centerPanel.setOpaque(false);
 
-        header.add(rightWrap, BorderLayout.EAST);
+        JPanel searchPanel = new JPanel(new BorderLayout());
+        searchPanel.setBackground(new Color(31, 41, 55));
+        searchPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(55, 65, 81), 1),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+        searchPanel.setPreferredSize(new Dimension(400, 40));
+
+        JLabel searchIcon = new JLabel(new VectorIcon(SEARCH, 16, new Color(156, 163, 175)));
+        searchPanel.add(searchIcon, BorderLayout.WEST);
+
+        JTextField searchField = createField("Search books, users, transactions...");
+        searchField.setBorder(null);
+        searchField.setBackground(new Color(31, 41, 55));
+        searchField.setForeground(TEXT_LIGHT);
+        searchField.setCaretColor(TEXT_LIGHT);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        searchField.addActionListener(e -> performSearch(getFieldText(searchField)));
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        centerPanel.add(searchPanel);
+        header.add(centerPanel, BorderLayout.CENTER);
+
+        // Right side: Notifications and user profile
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        rightPanel.setOpaque(false);
+
+        // Notifications button
+        JButton notifBtn = new JButton();
+        notifBtn.setIcon(new VectorIcon(NOTIFICATION, 20, new Color(156, 163, 175)));
+        notifBtn.setBackground(HEADER_BG);
+        notifBtn.setBorderPainted(false);
+        notifBtn.setFocusPainted(false);
+        notifBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        rightPanel.add(notifBtn);
+
+        // User profile button
+        JButton userBtn = new JButton();
+        userBtn.setIcon(new VectorIcon(PERSON, 24, TEXT_LIGHT));
+        userBtn.setBackground(HEADER_BG);
+        userBtn.setBorderPainted(false);
+        userBtn.setFocusPainted(false);
+        userBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        userBtn.addActionListener(e -> showUserProfileDialog());
+        rightPanel.add(userBtn);
+
+        // Theme toggle
+        JButton themeBtn = new JButton();
+        themeBtn.setIcon(new VectorIcon(isDarkMode() ? SUN : MOON, 20, new Color(156, 163, 175)));
+        themeBtn.setBackground(HEADER_BG);
+        themeBtn.setBorderPainted(false);
+        themeBtn.setFocusPainted(false);
+        themeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        themeBtn.addActionListener(e -> toggleTheme());
+        rightPanel.add(themeBtn);
+
+        header.add(rightPanel, BorderLayout.EAST);
+
         return header;
+    }
+    
+    private void showUserProfileDialog() {
+        JDialog dialog = new JDialog(this, "User Profile", true);
+        dialog.setSize(400, 450);
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(CARD_BG);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+
+        // Avatar
+        JPanel avatarPanel = new JPanel();
+        avatarPanel.setOpaque(false);
+        JLabel avatarLabel = new JLabel(new VectorIcon(PERSON, 80, PRIMARY));
+        avatarPanel.add(avatarLabel);
+        panel.add(avatarPanel);
+        panel.add(Box.createVerticalStrut(20));
+
+        // Name
+        JLabel nameL = new JLabel(currentUser.getDisplayName());
+        nameL.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        nameL.setForeground(TEXT_DARK);
+        nameL.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(nameL);
+        panel.add(Box.createVerticalStrut(4));
+
+        // Username
+        JLabel usernameL = new JLabel("@" + currentUser.getUsername());
+        usernameL.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        usernameL.setForeground(TEXT_GRAY);
+        usernameL.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(usernameL);
+        panel.add(Box.createVerticalStrut(24));
+
+        // Info
+        JPanel infoPanel = new JPanel(new GridLayout(0, 1, 0, 12));
+        infoPanel.setOpaque(false);
+        infoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        addInfoRow(infoPanel, "Email", currentUser.getEmail());
+        addInfoRow(infoPanel, "Phone", currentUser.getPhone());
+
+        panel.add(infoPanel);
+        panel.add(Box.createVerticalStrut(30));
+
+        // Close button
+        CustomButton closeBtn = new CustomButton("Close", PRIMARY, PRIMARY_HOVER);
+        closeBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        closeBtn.addActionListener(e -> dialog.dispose());
+        panel.add(closeBtn);
+
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+    
+    private void addInfoRow(JPanel panel, String label, String value) {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setOpaque(false);
+        row.setMaximumSize(new Dimension(340, 40));
+
+        JLabel labelL = new JLabel(label + ":");
+        labelL.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        labelL.setForeground(TEXT_GRAY);
+        row.add(labelL, BorderLayout.WEST);
+
+        JLabel valueL = new JLabel(value != null && !value.isEmpty() ? value : "Not set");
+        valueL.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        valueL.setForeground(TEXT_DARK);
+        row.add(valueL, BorderLayout.EAST);
+
+        panel.add(row);
+    }
+    
+    private void performSearch(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            showDashboard();
+            return;
+        }
+        query = query.trim().toLowerCase();
+        
+        showSearchResults(query);
+    }
+    
+    private void showSearchResults(String query) {
+        currentScreen = "Search";
+        JPanel p = makePanel();
+        
+        JLabel title = new JLabel("Search Results for: \"" + query + "\"");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        title.setForeground(TEXT_DARK);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(title);
+        p.add(Box.createVerticalStrut(8));
+        
+        // Search books
+        JLabel booksLabel = new JLabel("Matching Books:");
+        booksLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        booksLabel.setForeground(TEXT_DARK);
+        booksLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(booksLabel);
+        p.add(Box.createVerticalStrut(8));
+        
+        List<Book> matchingBooks = controller.getAllBooks().stream()
+                .filter(b -> b.getBookId().toLowerCase().contains(query)
+                        || b.getTitle().toLowerCase().contains(query)
+                        || b.getAuthor().toLowerCase().contains(query)
+                        || b.getGenre().toLowerCase().contains(query))
+                .collect(Collectors.toList());
+        
+        if (matchingBooks.isEmpty()) {
+            JLabel noBooks = new JLabel("No matching books found.");
+            noBooks.setForeground(TEXT_GRAY);
+            noBooks.setAlignmentX(Component.LEFT_ALIGNMENT);
+            p.add(noBooks);
+        } else {
+            String[] cols = {"ID", "Title", "Author", "Genre", "Quantity", "Status"};
+            DefaultTableModel model = new DefaultTableModel(cols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            for (Book book : matchingBooks) {
+                model.addRow(new Object[]{
+                        book.getBookId(),
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getGenre(),
+                        book.getQuantity(),
+                        book.isAvailable() ? "Available" : "Issued"
+                });
+            }
+            JTable table = styleTable(new JTable(model));
+            attachTableNavigation(table, 0, -1);
+            p.add(new JScrollPane(table));
+        }
+        
+        p.add(Box.createVerticalStrut(16));
+        
+        // Search users
+        JLabel usersLabel = new JLabel("Matching Users:");
+        usersLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        usersLabel.setForeground(TEXT_DARK);
+        usersLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(usersLabel);
+        p.add(Box.createVerticalStrut(8));
+        
+        List<User> matchingUsers = controller.getAllUsers().stream()
+                .filter(u -> u.getUserId().toLowerCase().contains(query)
+                        || u.getName().toLowerCase().contains(query)
+                        || (u.getEmail() != null && u.getEmail().toLowerCase().contains(query)))
+                .collect(Collectors.toList());
+        
+        if (matchingUsers.isEmpty()) {
+            JLabel noUsers = new JLabel("No matching users found.");
+            noUsers.setForeground(TEXT_GRAY);
+            noUsers.setAlignmentX(Component.LEFT_ALIGNMENT);
+            p.add(noUsers);
+        } else {
+            String[] cols = {"ID", "Name", "Email"};
+            DefaultTableModel model = new DefaultTableModel(cols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            for (User user : matchingUsers) {
+                model.addRow(new Object[]{
+                        user.getUserId(),
+                        user.getName(),
+                        user.getEmail() != null ? user.getEmail() : ""
+                });
+            }
+            JTable table = styleTable(new JTable(model));
+            attachTableNavigation(table, -1, 0);
+            p.add(new JScrollPane(table));
+        }
+        
+        p.add(Box.createVerticalStrut(16));
+        
+        // Search transactions
+        JLabel txnsLabel = new JLabel("Matching Transactions:");
+        txnsLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        txnsLabel.setForeground(TEXT_DARK);
+        txnsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(txnsLabel);
+        p.add(Box.createVerticalStrut(8));
+        
+        List<Transaction> matchingTxns = controller.getAllTransactions().stream()
+                .filter(t -> t.getTransactionId().toLowerCase().contains(query)
+                        || t.getBookId().toLowerCase().contains(query)
+                        || t.getBookName().toLowerCase().contains(query)
+                        || t.getUserId().toLowerCase().contains(query)
+                        || t.getUserName().toLowerCase().contains(query))
+                .collect(Collectors.toList());
+        
+        if (matchingTxns.isEmpty()) {
+            JLabel noTxns = new JLabel("No matching transactions found.");
+            noTxns.setForeground(TEXT_GRAY);
+            noTxns.setAlignmentX(Component.LEFT_ALIGNMENT);
+            p.add(noTxns);
+        } else {
+            String[] cols = {"Transaction ID", "Book", "User", "Issue Date", "Return Date", "Status"};
+            DefaultTableModel model = new DefaultTableModel(cols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            for (Transaction t : matchingTxns) {
+                model.addRow(new Object[]{
+                        t.getTransactionId(),
+                        displayBook(t),
+                        displayUser(t),
+                        t.getIssueDate(),
+                        t.getReturnDate() != null ? t.getReturnDate() : "—",
+                        t.getStatus()
+                });
+            }
+            JTable table = styleTable(new JTable(model));
+            attachTableNavigation(table, 1, 2);
+            p.add(new JScrollPane(table));
+        }
+        
+        showContent(p, "Search Results");
     }
 
     private JPanel buildSidebar() {
         activeNavButton = null;
         navButtons.clear();
+        navLabels.clear();
 
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BorderLayout(0, 12));
         sidebar.setBackground(SIDEBAR_BG);
-        sidebar.setPreferredSize(new Dimension(244, 0));
+        sidebar.setPreferredSize(new Dimension(sidebarExpanded ? 244 : 70, 0));
         sidebar.setBorder(BorderFactory.createEmptyBorder(18, 14, 18, 14));
 
         JPanel navStack = new JPanel();
         navStack.setLayout(new BoxLayout(navStack, BoxLayout.Y_AXIS));
         navStack.setOpaque(false);
 
-        JLabel nav = new JLabel("  MAIN MENU");
+        // Toggle button
+        JButton toggleBtn = createSidebarBtn(MENU, null);
+        toggleBtn.addActionListener(e -> toggleSidebar());
+        navStack.add(toggleBtn);
+        navStack.add(Box.createVerticalStrut(16));
+
+        JLabel nav = new JLabel(sidebarExpanded ? "  MAIN MENU" : "");
         nav.setForeground(TEXT_GRAY);
         nav.setFont(new Font("Segoe UI", Font.BOLD, 11));
         nav.setAlignmentX(Component.LEFT_ALIGNMENT);
+        navLabels.add(nav);
         navStack.add(nav);
         navStack.add(Box.createVerticalStrut(10));
 
@@ -190,8 +520,57 @@ public class LibrarySwingApp extends JFrame {
         visibleItems.add(new Object[]{"About Me", PERSON});
 
         for (Object[] item : visibleItems) {
+            JPanel itemPanel = new JPanel(new BorderLayout(0, 0));
+            itemPanel.setOpaque(false);
+            
             JButton btn = createNavBtn((String) item[0], (VectorIcon.IconType) item[1]);
-            navStack.add(btn);
+            
+            final String screen = (String) item[0];
+            btn.addActionListener(e -> {
+                setActiveNav(btn);
+                switch (screen) {
+                    case "Dashboard" -> showDashboard();
+                    case "Add Book" -> showAddBook();
+                    case "Register User" -> showRegisterUser();
+                    case "Issue Book" -> showIssueBook();
+                    case "Return Book" -> showReturnBook();
+                    case "View Books" -> showViewBooks("ALL");
+                    case "User Profiles" -> showUserProfileSearch();
+                    case "Transactions" -> showTransactions("ALL");
+                    case "Removed Items" -> showRemovedItems();
+                    case "About Me" -> showAboutMe();
+                }
+            });
+            
+            itemPanel.add(btn, BorderLayout.WEST);
+            
+            JLabel lbl = new JLabel((String) item[0]);
+            lbl.setForeground(TEXT_LIGHT);
+            lbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            lbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+            lbl.setVisible(sidebarExpanded);
+            lbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            lbl.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    setActiveNav(btn);
+                    switch (screen) {
+                        case "Dashboard" -> showDashboard();
+                        case "Add Book" -> showAddBook();
+                        case "Register User" -> showRegisterUser();
+                        case "Issue Book" -> showIssueBook();
+                        case "Return Book" -> showReturnBook();
+                        case "View Books" -> showViewBooks("ALL");
+                        case "User Profiles" -> showUserProfileSearch();
+                        case "Transactions" -> showTransactions("ALL");
+                        case "Removed Items" -> showRemovedItems();
+                        case "About Me" -> showAboutMe();
+                    }
+                }
+            });
+            navLabels.add(lbl);
+            itemPanel.add(lbl, BorderLayout.CENTER);
+            
+            navStack.add(itemPanel);
             navStack.add(Box.createVerticalStrut(4));
             if (((String) item[0]).equals(getActiveNavLabel())) {
                 setActiveNav(btn);
@@ -199,19 +578,68 @@ public class LibrarySwingApp extends JFrame {
         }
 
         navStack.add(Box.createVerticalStrut(8));
+        // Dark mode toggle in header now, but we'll keep it here for backwards compatibility
+        JPanel darkModePanel = new JPanel(new BorderLayout(0, 0));
+        darkModePanel.setOpaque(false);
         JButton darkModeBtn = createNavBtn(isDarkMode() ? "Light Mode" : "Dark Mode", isDarkMode() ? SUN : MOON);
         darkModeBtn.addActionListener(e -> toggleTheme());
-        navStack.add(darkModeBtn);
+        darkModePanel.add(darkModeBtn, BorderLayout.WEST);
+        JLabel darkModeLbl = new JLabel(isDarkMode() ? "Light Mode" : "Dark Mode");
+        darkModeLbl.setForeground(TEXT_LIGHT);
+        darkModeLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        darkModeLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        darkModeLbl.setVisible(sidebarExpanded);
+        darkModeLbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        darkModeLbl.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                toggleTheme();
+            }
+        });
+        navLabels.add(darkModeLbl);
+        darkModePanel.add(darkModeLbl, BorderLayout.CENTER);
+        navStack.add(darkModePanel);
         navStack.add(Box.createVerticalStrut(4));
 
+        JPanel logoutPanel = new JPanel(new BorderLayout(0, 0));
+        logoutPanel.setOpaque(false);
         JButton logoutBtn = createNavBtn("Logout", LOGOUT);
         logoutBtn.addActionListener(e -> logout());
-        navStack.add(logoutBtn);
+        logoutPanel.add(logoutBtn, BorderLayout.WEST);
+        JLabel logoutLbl = new JLabel("Logout");
+        logoutLbl.setForeground(TEXT_LIGHT);
+        logoutLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        logoutLbl.setVisible(sidebarExpanded);
+        logoutLbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutLbl.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                logout();
+            }
+        });
+        navLabels.add(logoutLbl);
+        logoutPanel.add(logoutLbl, BorderLayout.CENTER);
+        navStack.add(logoutPanel);
         navStack.add(Box.createVerticalStrut(4));
 
+        JPanel exitPanel = new JPanel(new BorderLayout(0, 0));
+        exitPanel.setOpaque(false);
         JButton exitBtn = createNavBtn("Exit", LOGOUT);
         exitBtn.addActionListener(e -> System.exit(0));
-        navStack.add(exitBtn);
+        exitPanel.add(exitBtn, BorderLayout.WEST);
+        JLabel exitLbl = new JLabel("Exit");
+        exitLbl.setForeground(TEXT_LIGHT);
+        exitLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        exitLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        exitLbl.setVisible(sidebarExpanded);
+        exitLbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exitLbl.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                System.exit(0);
+            }
+        });
+        navLabels.add(exitLbl);
+        exitPanel.add(exitLbl, BorderLayout.CENTER);
+        navStack.add(exitPanel);
 
         JScrollPane navScroll = new JScrollPane(navStack);
         navScroll.setBorder(null);
@@ -269,6 +697,46 @@ public class LibrarySwingApp extends JFrame {
             });
         }
         return btn;
+    }
+    
+    private JButton createSidebarBtn(VectorIcon.IconType iconType, String label) {
+        JButton btn = new JButton();
+        btn.setIcon(new VectorIcon(iconType, 22, new Color(156, 163, 175)));
+        btn.setBackground(SIDEBAR_BG);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(46, 46));
+        btn.setMaximumSize(new Dimension(46, 46));
+        btn.setMinimumSize(new Dimension(46, 46));
+        navButtons.add(btn);
+
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { 
+                if (btn != activeNavButton) btn.setBackground(SIDEBAR_HOVER); 
+            }
+            public void mouseExited(MouseEvent e) { 
+                if (btn != activeNavButton) btn.setBackground(SIDEBAR_BG); 
+            }
+        });
+
+        return btn;
+    }
+    
+    private void toggleSidebar() {
+        sidebarExpanded = !sidebarExpanded;
+        
+        // Update sidebar width
+        sidebarPanel.setPreferredSize(new Dimension(sidebarExpanded ? 244 : 70, 0));
+        
+        // Show/hide labels
+        for (JLabel lbl : navLabels) {
+            lbl.setVisible(sidebarExpanded);
+        }
+        
+        // Refresh the UI
+        revalidate();
+        repaint();
     }
 
     private void openLink(String url) {
@@ -371,7 +839,7 @@ public class LibrarySwingApp extends JFrame {
 
     private void setStatus(String msg) {
         if (currentUser != null) {
-            statusLabel.setText("[" + currentUser.getRole() + "] " + currentUser.getDisplayName() + " | " + msg);
+            statusLabel.setText(currentUser.getDisplayName() + " | " + msg);
         } else {
             statusLabel.setText(msg);
         }
@@ -389,10 +857,23 @@ public class LibrarySwingApp extends JFrame {
     }
 
     private JPanel makePanel() {
+        return makePanel(false);
+    }
+
+    private JPanel makePanel(boolean showBackButton) {
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBackground(CONTENT_BG);
         p.setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
+
+        if (showBackButton) {
+            CustomButton backBtn = new CustomButton("← Back", new Color(100, 100, 100), new Color(80, 80, 80));
+            backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+            backBtn.addActionListener(e -> goBack());
+            p.add(backBtn);
+            p.add(Box.createVerticalStrut(16));
+        }
+
         return p;
     }
 
@@ -628,6 +1109,13 @@ public class LibrarySwingApp extends JFrame {
         viewBtn.setPreferredSize(new Dimension(100, 36));
         viewBtn.setMaximumSize(new Dimension(140, 36));
         topBar.add(viewBtn);
+        topBar.add(Box.createHorizontalStrut(8));
+        
+        CustomButton exportBtn = new CustomButton("Export to CSV", new Color(34, 197, 94), new Color(22, 163, 74));
+        exportBtn.setPreferredSize(new Dimension(120, 36));
+        exportBtn.setMaximumSize(new Dimension(140, 36));
+        exportBtn.addActionListener(e -> exportBooksToCsv());
+        topBar.add(exportBtn);
         topBar.add(Box.createHorizontalGlue());
 
         if (books.isEmpty()) {
@@ -978,6 +1466,13 @@ public class LibrarySwingApp extends JFrame {
         searchWrap.setLayout(new BoxLayout(searchWrap, BoxLayout.X_AXIS));
         searchWrap.setOpaque(false);
         searchWrap.add(searchF);
+        searchWrap.add(Box.createHorizontalStrut(8));
+        
+        CustomButton exportBtn = new CustomButton("Export to CSV", new Color(34, 197, 94), new Color(22, 163, 74));
+        exportBtn.setPreferredSize(new Dimension(120, 36));
+        exportBtn.setMaximumSize(new Dimension(140, 36));
+        exportBtn.addActionListener(e -> exportUsersToCsv());
+        searchWrap.add(exportBtn);
         searchWrap.add(Box.createHorizontalGlue());
         leftPanel.add(searchWrap, BorderLayout.NORTH);
 
@@ -1218,6 +1713,20 @@ public class LibrarySwingApp extends JFrame {
             txns = txns.stream().filter(Transaction::isActive).collect(Collectors.toList());
         }
 
+        JPanel topBar = new JPanel();
+        topBar.setLayout(new BoxLayout(topBar, BoxLayout.X_AXIS));
+        topBar.setOpaque(false);
+        topBar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        topBar.add(Box.createHorizontalGlue());
+        
+        CustomButton exportBtn = new CustomButton("Export to CSV", new Color(34, 197, 94), new Color(22, 163, 74));
+        exportBtn.setPreferredSize(new Dimension(120, 36));
+        exportBtn.setMaximumSize(new Dimension(140, 36));
+        exportBtn.addActionListener(e -> exportTransactionsToCsv());
+        topBar.add(exportBtn);
+        p.add(topBar);
+        p.add(Box.createVerticalStrut(16));
+
         if (txns.isEmpty()) { 
             addHint(p, "No transactions found for this filter."); 
         } else {
@@ -1318,10 +1827,11 @@ public class LibrarySwingApp extends JFrame {
             showViewBooks("ALL");
             return;
         }
+        saveHistory();
         currentScreen = "BookDetails";
         currentDetailId = book.getBookId();
 
-        JPanel p = makePanel();
+        JPanel p = makePanel(true);
         addTitle(p, "Book Details");
         addHint(p, "Availability, borrower information, and transaction history.");
         p.add(buildBookProfilePanel(book, () -> showBookDetails(book.getBookId())));
@@ -1336,10 +1846,11 @@ public class LibrarySwingApp extends JFrame {
             showUserProfileSearch();
             return;
         }
+        saveHistory();
         currentScreen = "UserDetails";
         currentDetailId = user.getUserId();
 
-        JPanel p = makePanel();
+        JPanel p = makePanel(true);
         addTitle(p, "User Profile");
         addHint(p, "Active borrowed books, account status, and borrowing history.");
         p.add(buildUserProfilePanel(user, () -> showUserDetails(user.getUserId())));
@@ -1686,6 +2197,75 @@ public class LibrarySwingApp extends JFrame {
         sp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 500));
         styleScrollPane(sp);
         return sp;
+    }
+    
+    private void exportBooksToCsv() {
+        List<Book> books = controller.getAllBooks();
+        StringBuilder csv = new StringBuilder();
+        csv.append("ID,Title,Author,Genre,Quantity,Available\n");
+        for (Book book : books) {
+            csv.append(book.getBookId()).append(",")
+                    .append(escapeCsv(book.getTitle())).append(",")
+                    .append(escapeCsv(book.getAuthor())).append(",")
+                    .append(escapeCsv(book.getGenre())).append(",")
+                    .append(book.getQuantity()).append(",")
+                    .append(book.isAvailable() ? "Yes" : "No").append("\n");
+        }
+        saveCsvToFile("books.csv", csv.toString());
+    }
+    
+    private void exportUsersToCsv() {
+        List<User> users = controller.getAllUsers();
+        StringBuilder csv = new StringBuilder();
+        csv.append("ID,Name,Email\n");
+        for (User user : users) {
+            csv.append(user.getUserId()).append(",")
+                    .append(escapeCsv(user.getName())).append(",")
+                    .append(escapeCsv(user.getEmail() != null ? user.getEmail() : "")).append("\n");
+        }
+        saveCsvToFile("users.csv", csv.toString());
+    }
+    
+    private void exportTransactionsToCsv() {
+        List<Transaction> transactions = controller.getAllTransactions();
+        StringBuilder csv = new StringBuilder();
+        csv.append("Transaction ID,Book ID,Book Name,User ID,User Name,Issue Date,Return Date,Status\n");
+        for (Transaction t : transactions) {
+            csv.append(t.getTransactionId()).append(",")
+                    .append(escapeCsv(t.getBookId())).append(",")
+                    .append(escapeCsv(t.getBookName())).append(",")
+                    .append(escapeCsv(t.getUserId())).append(",")
+                    .append(escapeCsv(t.getUserName())).append(",")
+                    .append(t.getIssueDate()).append(",")
+                    .append(t.getReturnDate() != null ? t.getReturnDate() : "").append(",")
+                    .append(t.getStatus()).append("\n");
+        }
+        saveCsvToFile("transactions.csv", csv.toString());
+    }
+    
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+    
+    private void saveCsvToFile(String filename, String content) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setSelectedFile(new java.io.File(filename));
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try {
+                java.io.File file = fileChooser.getSelectedFile();
+                java.io.FileWriter writer = new java.io.FileWriter(file);
+                writer.write(content);
+                writer.close();
+                showSuccess(this, "File saved successfully!");
+            } catch (Exception e) {
+                showError(this, "Failed to save file: " + e.getMessage());
+            }
+        }
     }
 
     // ═══════════════════ LAUNCH ═══════════════════

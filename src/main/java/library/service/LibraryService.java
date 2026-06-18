@@ -28,6 +28,7 @@ public interface LibraryService {
     AuthAccount authenticate(String username, String password) throws InvalidInputException;
     AuthAccount findAccountByUsername(String username);
     List<AuthAccount> getAllAuthAccounts();
+    void resetPassword(String username, String hintWord, String newPassword) throws InvalidInputException;
 
     void returnBook(String bookId, String userId)
             throws BookNotFoundException, UserNotFoundException;

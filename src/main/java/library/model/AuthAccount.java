@@ -8,17 +8,17 @@ public class AuthAccount {
     private String fullName;
     private String email;
     private String phone;
-    private String role;
     private String passwordHash;
+    private String hintWord;
 
     public AuthAccount(String username, String fullName, String email, String phone,
-                       String role, String passwordHash) {
+                       String passwordHash, String hintWord) {
         this.username = username;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
-        this.role = role;
         this.passwordHash = passwordHash;
+        this.hintWord = hintWord;
     }
 
     public String getUsername() { return username; }
@@ -33,11 +33,11 @@ public class AuthAccount {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public String getHintWord() { return hintWord; }
+    public void setHintWord(String hintWord) { this.hintWord = hintWord; }
 
     public String getDisplayName() {
         return fullName == null || fullName.isBlank() ? username : fullName;
@@ -58,7 +58,7 @@ public class AuthAccount {
 
     @Override
     public String toString() {
-        return String.format("AuthAccount[username=%s, fullName=%s, email=%s, role=%s]",
-                username, fullName, email, role);
+        return String.format("AuthAccount[username=%s, fullName=%s, email=%s]",
+                username, fullName, email);
     }
 }
