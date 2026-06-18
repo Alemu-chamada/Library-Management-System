@@ -97,7 +97,7 @@ To give you an idea of the polished user experience, here is a preview of the Sm
 ### 👥 User Profiles & Membership Management
 | Light Mode View | Dark Mode View |
 | :---: | :---: |
-| ![User Profiles Light Mode](screenshots/user_profiles_light_mode.jpg) | ![User Profiles Dark Mode](screenshots/user_profiles_dark_mode.jpg) |
+| ![User Profiles Dark Mode](screenshots/user_profiles_light_mode.jpg) | ![User Profiles Light Mode](screenshots/user_profiles_dark_mode.jpg) |
 | *Role and permission grids with light aesthetic accents.* | *Professional layout with custom high-contrast dark accents.* |
 
 ### 📝 Member Registration Panel
